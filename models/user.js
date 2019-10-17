@@ -46,8 +46,11 @@ userSchema.methods = {
         .update(password)
         .digest("hex");
     } catch (e) {
-      return "";
+      throw e;
     }
+  },
+  authenticate: function(plainText) {
+    return this.encryptPassword(plainText) === this.hashed_password;
   }
 };
 
@@ -55,7 +58,7 @@ userSchema.methods = {
 userSchema
   .virtual("password")
   .set(function(password) {
-    this.password = password;
+    this._password = password;
     this.salt = uuidv1();
     this.hashed_password = this.encryptPassword(password);
   })
