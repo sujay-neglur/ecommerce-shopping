@@ -6,6 +6,7 @@ const { errorHandler } = require("../helpers/dbErrorHandler");
 
 exports.productById = (req, res, next, id) => {
   Product.findById(id)
+    .populate("category")
     .then(product => {
       req.product = product;
       next();
@@ -208,4 +209,27 @@ exports.photo = (req, res, next) => {
     return res.send(req.product.photo.data);
   }
   next();
+};
+
+exports.listSearch = (req, res) => {
+  // Create query object to hold search values
+  const query = {};
+  // Assign search value to query.name
+  if (req.query.search) {
+    query.name = { $regex: req.query.search, $options: "i" };
+    // assign category value to query.category
+    if (req.query.category && req.query.category !== "All") {
+      query.category = req.query.category;
+    }
+    //Find product based on query object
+    // search and category
+    Product.find(query)
+      .select("-photo")
+      .then(products => res.json(products))
+      .catch(err =>
+        res.status(400).json({
+          error: errorHandler(err)
+        })
+      );
+  }
 };
